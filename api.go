@@ -31,11 +31,17 @@ func sendGetQuery(url string) ([]byte, error) {
 	return data, nil
 }
 
-func (a API) SendMessage(text string, chatID int64) (MessageResponce, error) {
+func (a API) SendMessage(text string, chatID int64, options *MessageOption) (MessageResponce, error) {
 
 	var messageResponce MessageResponce
 
-	url := fmt.Sprintf("%ssendMessage?text=%s&chatID=%d", string(a), url.QueryEscape(text), chatID)
+	url := fmt.Sprintf(
+		"%ssendMessage?text=%s&chatID=%d&%s",
+		string(a),
+		url.QueryEscape(text),
+		chatID,
+		parseOptions(options),
+	)
 
 	jsonResp, err := sendGetQuery(url)
 	if err != nil {
