@@ -56,7 +56,13 @@ func (a API) SendMessage(text string, chatID int64, options *MessageOption) (Mes
 func (a API) ReplyToMessage(text string, chatID int64, messageID int) (MessageResponce, error) {
 	var messageResponce MessageResponce
 
-	url := fmt.Sprintf("%ssendMessage?text=%s&chatID=%d&reply_to_message_id=%d", string(a), url.QueryEscape(text), chatID, messageID)
+	url := fmt.Sprintf(
+		"%ssendMessage?text=%s&chatID=%d&reply_to_message_id=%d",
+		string(a),
+		url.QueryEscape(text),
+		chatID,
+		messageID,
+	)
 
 	jsonResp, err := sendGetQuery(url)
 	if err != nil {
@@ -71,7 +77,11 @@ func (a API) ReplyToMessage(text string, chatID int64, messageID int) (MessageRe
 func (a API) GetUpdates(offset int, timeout int) (UpdatesResponce, error) {
 	var updatesResponce UpdatesResponce
 
-	url := fmt.Sprintf("%sgetUpdates?timeout=%d", string(a), timeout)
+	url := fmt.Sprintf(
+		"%sgetUpdates?timeout=%d",
+		string(a),
+		timeout,
+	)
 
 	if offset != 0 {
 		url = fmt.Sprintf("%s&offset=%d", url, offset)
