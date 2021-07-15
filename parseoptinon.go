@@ -7,9 +7,13 @@ import (
 
 func createQuery(options interface{}) url.Values {
 	val := url.Values{}
+
 	switch options.(type) {
 	case *MessageOption:
-		msgOption := options.(MessageOption)
+		msgOption := options.(*MessageOption)
+		if msgOption == nil {
+			return val
+		}
 		if msgOption.AllowSendingWithoutReply {
 			val.Add("allow_sending_without_reply", "true")
 		}

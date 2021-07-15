@@ -12,7 +12,7 @@ import (
 type API string
 
 // https://api.telegram.org/bot<token>/METHOD_NAME
-func NewApi(token string) API {
+func newApi(token string) API {
 	return API(fmt.Sprintf("https://api.telegram.org/bot%s/", token))
 }
 
@@ -36,7 +36,7 @@ func (a API) SendMessage(text string, chatID int64, options *MessageOption) (Mes
 	var messageResponce MessageResponce
 
 	url := fmt.Sprintf(
-		"%ssendMessage?text=%s&chatID=%d&%s",
+		"%ssendMessage?text=%s&chat_id=%d&%s",
 		string(a),
 		url.QueryEscape(text),
 		chatID,
@@ -51,13 +51,14 @@ func (a API) SendMessage(text string, chatID int64, options *MessageOption) (Mes
 	json.Unmarshal(jsonResp, &messageResponce)
 
 	return messageResponce, nil
+
 }
 
 func (a API) ReplyToMessage(text string, chatID int64, messageID int) (MessageResponce, error) {
 	var messageResponce MessageResponce
 
 	url := fmt.Sprintf(
-		"%ssendMessage?text=%s&chatID=%d&reply_to_message_id=%d",
+		"%ssendMessage?text=%s&chat_id=%d&reply_to_message_id=%d",
 		string(a),
 		url.QueryEscape(text),
 		chatID,
@@ -78,14 +79,11 @@ func (a API) GetUpdates(offset int, timeout int) (UpdatesResponce, error) {
 	var updatesResponce UpdatesResponce
 
 	url := fmt.Sprintf(
-		"%sgetUpdates?timeout=%d",
+		"%sgetUpdates?timeout=%d&offset=%d",
 		string(a),
 		timeout,
+		offset,
 	)
-
-	if offset != 0 {
-		url = fmt.Sprintf("%s&offset=%d", url, offset)
-	}
 
 	jsonResp, err := sendGetQuery(url)
 	if err != nil {
