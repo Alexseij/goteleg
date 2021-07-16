@@ -17,5 +17,11 @@ func main() {
 		},
 	}
 
+	// or you can use like that for each handler:
+
+	bot.AddHandler("/start", func(u *goteleg.Update) {
+		bot.SendMessage("Hi !", goteleg.GetChatID(u), nil)
+	})
+
 	bot.Start()
 }
