@@ -39,14 +39,14 @@ func (b *Bot) Start() {
 }
 
 func (b *Bot) AddHandler(command string, handler func(*Update)) {
-	b.Handlers[command] = handler
+	b.handlers[command] = handler
 }
 
 func (d *dispatcher) handleUpdate(update *Update) {
 	if update.Msg != nil {
 		str := update.Msg.Text
 		if str[0] == '/' {
-			if handler, ok := d.Handlers[str]; ok {
+			if handler, ok := d.handlers[str]; ok {
 				handler(update)
 			}
 		}
