@@ -1,96 +1,124 @@
 package goteleg
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"net/http"
-	"net/url"
 )
 
 // Type for working with telegram API
-type API string
-
-// https://api.telegram.org/bot<token>/METHOD_NAME
-func newApi(token string) API {
-	return API(fmt.Sprintf("https://api.telegram.org/bot%s/", token))
+type API struct {
+	apiURL string
+	client *http.Client
 }
 
-func sendGetQuery(url string) ([]byte, error) {
-	resp, err := http.Get(url)
+// https://api.telegram.org/bot<token>/METHOD_NAME
+func newApi(token string, client *http.Client) API {
+	return API{
+		apiURL: fmt.Sprintf("https://api.telegram.org/bot%s/", token),
+		client: client,
+	}
+}
+
+func getData(url string, params interface{}, client *http.Client) ([]byte, error) {
+
+	json, err := json.Marshal(params)
 	if err != nil {
 		return nil, err
 	}
 
+	buf := bytes.NewBuffer(json)
+
+	resp, err := client.Post(url, "aplictation/json", buf)
+	if err != nil {
+		return nil, err
+	}
 	defer resp.Body.Close()
 
-	data, err := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("goteleg : http request has status : %s", resp.StatusCode)
+	}
+
+	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
+
 	return data, nil
 }
 
-func (a API) SendMessage(text string, chatID int64, options *MessageOption) (MessageResponce, error) {
+func (a API) SendMessage(options *MessageOption) (MessageResponce, error) {
 
 	var messageResponce MessageResponce
 
 	url := fmt.Sprintf(
-		"%ssendMessage?text=%s&chat_id=%d&%s",
-		string(a),
-		url.QueryEscape(text),
-		chatID,
-		parseOptions(options),
+		"%ssendMessage",
+		a.apiURL,
 	)
 
-	jsonResp, err := sendGetQuery(url)
+	data, err := getData(url, options, a.client)
 	if err != nil {
 		return messageResponce, err
 	}
 
-	json.Unmarshal(jsonResp, &messageResponce)
+	json.Unmarshal(data, &messageResponce)
 
 	return messageResponce, nil
 
 }
 
-func (a API) ReplyToMessage(text string, chatID int64, messageID int) (MessageResponce, error) {
+func (a API) ReplyToMessage(optinons interface{}) (MessageResponce, error) {
 	var messageResponce MessageResponce
 
 	url := fmt.Sprintf(
-		"%ssendMessage?text=%s&chat_id=%d&reply_to_message_id=%d",
-		string(a),
-		url.QueryEscape(text),
-		chatID,
-		messageID,
+		"%ssendMessage",
+		a.apiURL,
 	)
 
-	jsonResp, err := sendGetQuery(url)
+	data, err := getData(url, optinons, a.client)
 	if err != nil {
 		return messageResponce, err
 	}
 
-	json.Unmarshal(jsonResp, &messageResponce)
+	json.Unmarshal(data, &messageResponce)
 
 	return messageResponce, nil
 }
 
-func (a API) GetUpdates(offset int, timeout int) (UpdatesResponce, error) {
+func (a API) GetUpdates(options interface{}) (UpdatesResponce, error) {
 	var updatesResponce UpdatesResponce
 
 	url := fmt.Sprintf(
-		"%sgetUpdates?timeout=%d&offset=%d",
-		string(a),
-		timeout,
-		offset,
+		"%sgetUpdates",
+		a.apiURL,
 	)
 
-	jsonResp, err := sendGetQuery(url)
+	data, err := getData(url, options, a.client)
 	if err != nil {
 		return updatesResponce, err
 	}
 
-	json.Unmarshal(jsonResp, &updatesResponce)
+	json.Unmarshal(data, &updatesResponce)
 
 	return updatesResponce, nil
+}
+
+func (a API) SendPhoto(chatID int, photo string, options *PhotoOption) (MessageResponce, error) {
+	var messageResponce MessageResponce
+
+	url := fmt.Sprintf(
+		"%ssendPhoto",
+		a.apiURL,
+	)
+
+	data, err := getData(url, options, a.client)
+	if err != nil {
+		return messageResponce, err
+	}
+
+	json.Unmarshal(data, &messageResponce)
+
+	return messageResponce, nil
 }
