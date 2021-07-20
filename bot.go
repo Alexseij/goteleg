@@ -1,32 +1,39 @@
 package goteleg
 
+import "net/http"
+
 type Setting struct {
-	Token string
+	Token  string
+	Client *http.Client
 	LongPollerSettings
 }
 
 type Bot struct {
-	*dispatcher
-	poller
-	API
+	poller     *longPoller
+	dispatcher *dispatcher
+	api        API
 }
 
 func NewBot(settings Setting) *Bot {
 	if settings.Token == "" {
-		panic("Set token!!")
+		panic("goteleg : use token")
 	}
 
 	if settings.Limit == 0 {
 		settings.Limit = 100
 	}
 
-	d := newDispatcher(settings.Limit)
+	if settings.Client == nil {
+		settings.Client = http.DefaultClient
+	}
+
+	dispatcher := newDispatcher(settings.Limit)
 
 	longPoller := newLongPoller(settings.LongPollerSettings)
 
 	bot := &Bot{
-		API:        newApi(settings.Token),
-		dispatcher: d,
+		api:        newApi(settings.Token, settings.Client),
+		dispatcher: dispatcher,
 		poller:     longPoller,
 	}
 
@@ -34,12 +41,12 @@ func NewBot(settings Setting) *Bot {
 }
 
 func (b *Bot) Start() {
-	go b.startPolling(b)
-	b.listenHttp()
+	go b.poller.startPolling(b.api)
+	b.dispatcher.listenUpdatesChan(b.poller.updates)
 }
 
 func (b *Bot) AddHandler(command string, handler func(*Update)) {
-	b.handlers[command] = handler
+	b.dispatcher.handlers[command] = handler
 }
 
 func (d *dispatcher) handleUpdate(update *Update) {
@@ -54,5 +61,5 @@ func (d *dispatcher) handleUpdate(update *Update) {
 }
 
 func (b *Bot) Stop() {
-	b.stop <- struct{}{}
+	b.dispatcher.stop <- struct{}{}
 }

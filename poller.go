@@ -2,15 +2,11 @@ package goteleg
 
 import "log"
 
-type poller interface {
-	startPolling(*Bot)
-}
-
 type longPoller struct {
 	offset         int
-	limit          int
 	timeout        int
 	allowedUpdates []string
+	updates        chan *Update
 }
 
 type LongPollerSettings struct {
@@ -19,24 +15,24 @@ type LongPollerSettings struct {
 	AllowedUpdates []string
 }
 
-func (lp *longPoller) startPolling(b *Bot) {
+func (lp *longPoller) startPolling(api API) {
 	for {
-		updates, err := b.GetUpdates(lp.offset+1, lp.timeout)
+		updates, err := api.GetUpdates(lp.offset+1, lp.timeout)
 		if err != nil {
 			log.Println(err)
 			continue
 		}
 		for _, update := range updates.Result {
 			lp.offset = update.UpdateID
-			b.updates <- update
+			lp.updates <- update
 		}
 	}
 }
 
 func newLongPoller(setting LongPollerSettings) *longPoller {
 	return &longPoller{
-		limit:          setting.Limit,
 		timeout:        setting.Timeout,
 		allowedUpdates: setting.AllowedUpdates,
+		updates:        make(chan *Update, setting.Limit),
 	}
 }
