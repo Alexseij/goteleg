@@ -4,8 +4,8 @@ type FormatingOption string
 
 const (
 	MarkdownV2 FormatingOption = "MarkdownV2"
-	HTML                       = "HTML"
-	Markdown                   = "Markdown"
+	HTML       FormatingOption = "HTML"
+	Markdown   FormatingOption = "Markdown"
 )
 
 type DefaultOption struct {
@@ -17,5 +17,12 @@ type DefaultOption struct {
 type MessageOption struct {
 	ParseMode             FormatingOption
 	DisableWebPagePreview bool
+	DefaultOption
+}
+
+type PhotoOption struct {
+	Caption         string
+	ParseMode       FormatingOption
+	CaptionEntities []*MessageEntity
 	DefaultOption
 }
