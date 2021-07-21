@@ -9,20 +9,19 @@ const (
 )
 
 type DefaultOption struct {
-	DisableNotification      bool
-	ReplyToMessageID         int
-	AllowSendingWithoutReply bool
+	DisableNotification      bool            `json:"disable_notification"`
+	ReplyToMessageID         int             `json:"reply_to_message_id"`
+	AllowSendingWithoutReply bool            `json:"allow_sending_without_reply"`
+	ParseMode                FormatingOption `json:"parse_mode"`
 }
 
 type MessageOption struct {
-	ParseMode             FormatingOption
-	DisableWebPagePreview bool
+	DisableWebPagePreview bool `json:"disable_web_page_preview"`
 	DefaultOption
 }
 
 type PhotoOption struct {
-	Caption         string
-	ParseMode       FormatingOption
-	CaptionEntities []*MessageEntity
+	Caption         string           `json:"caption"`
+	CaptionEntities []*MessageEntity `json:"caption_entities"`
 	DefaultOption
 }
