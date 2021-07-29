@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 )
 
 // Type for working with telegram API
@@ -24,11 +25,14 @@ func newApi(token string, client *http.Client) API {
 
 func getData(url string, params interface{}, client *http.Client) ([]byte, error) {
 
-	json, err := json.Marshal(params)
+	jsonParams, err := json.Marshal(params)
 	if err != nil {
 		return nil, err
 	}
 
+	json.Unmarshal(jsonParams)
+
+	fmt.Println()
 	buf := bytes.NewBuffer(json)
 
 	resp, err := client.Post(url, "aplictation/json", buf)
@@ -38,7 +42,7 @@ func getData(url string, params interface{}, client *http.Client) ([]byte, error
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("goteleg : http request has status : %s", resp.StatusCode)
+		return nil, fmt.Errorf("goteleg : http request has status : %v", resp.StatusCode)
 	}
 
 	data, err := ioutil.ReadAll(resp.Body)
@@ -49,13 +53,15 @@ func getData(url string, params interface{}, client *http.Client) ([]byte, error
 	return data, nil
 }
 
-func (a API) SendMessage(options *MessageOption) (MessageResponce, error) {
+func (a API) SendMessage(text string, chatID int64, options *MessageOption) (MessageResponce, error) {
 
 	var messageResponce MessageResponce
 
 	url := fmt.Sprintf(
-		"%ssendMessage",
+		"%ssendMessage?chat_id=%d&text=%s",
 		a.apiURL,
+		chatID,
+		url.QueryEscape(text),
 	)
 
 	data, err := getData(url, options, a.client)

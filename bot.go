@@ -11,7 +11,7 @@ type Setting struct {
 type Bot struct {
 	poller     *longPoller
 	dispatcher *dispatcher
-	api        API
+	API
 }
 
 func NewBot(settings Setting) *Bot {
@@ -32,7 +32,7 @@ func NewBot(settings Setting) *Bot {
 	longPoller := newLongPoller(settings.LongPollerSettings)
 
 	bot := &Bot{
-		api:        newApi(settings.Token, settings.Client),
+		API:        newApi(settings.Token, settings.Client),
 		dispatcher: dispatcher,
 		poller:     longPoller,
 	}
@@ -41,7 +41,7 @@ func NewBot(settings Setting) *Bot {
 }
 
 func (b *Bot) Start() {
-	go b.poller.startPolling(b.api)
+	go b.poller.startPolling(b.API)
 	b.dispatcher.listenUpdatesChan(b.poller.updates)
 }
 
